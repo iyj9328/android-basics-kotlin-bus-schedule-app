@@ -20,9 +20,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
+import com.example.busschedule.BusScheduleApplication
+import com.example.busschedule.BusStationAdapter
 import com.example.busschedule.databinding.StopScheduleFragmentBinding
+import com.example.busschedule.viewmodels.BusScheduleViewModel
+import com.example.busschedule.viewmodels.BusScheduleViewModelFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class StopScheduleFragment: Fragment() {
 
@@ -34,7 +41,11 @@ class StopScheduleFragment: Fragment() {
 
     private val binding get() = _binding!!
 
-    private lateinit var recyclerView: RecyclerView
+    private val viewModel : BusScheduleViewModel by activityViewModels {
+        BusScheduleViewModelFactory(
+            (activity?.application as BusScheduleApplication).database.scheduleDao()
+        )
+    }
 
     private lateinit var stopName: String
 
@@ -50,16 +61,23 @@ class StopScheduleFragment: Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = StopScheduleFragmentBinding.inflate(inflater, container, false)
-        val view = binding.root
-        return view
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        recyclerView = binding.recyclerView
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        val busStationAdapter = BusStationAdapter {}
+
+        with(binding){
+            recyclerView.adapter = busStationAdapter
+        }
+
+        GlobalScope.launch(Dispatchers.IO) {
+            busStationAdapter.submitList(viewModel.scheduleForStopName(stopName))
+        }
     }
 
     override fun onDestroyView() {
