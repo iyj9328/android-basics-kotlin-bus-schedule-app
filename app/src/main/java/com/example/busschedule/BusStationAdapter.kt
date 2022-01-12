@@ -8,21 +8,19 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.busschedule.database.Schedule
 import com.example.busschedule.databinding.BusStationItemBinding
-import java.text.SimpleDateFormat
-import java.util.*
+import com.example.busschedule.util.DateFormatter
 
-class BusStationAdapter(private val onItemClicked: (Schedule) -> Unit) :
+class BusStationAdapter(
+    private val onItemClicked: (Schedule) -> Unit,
+    private val dateFormatter: DateFormatter
+) :
     ListAdapter<Schedule, BusStationAdapter.BusStationViewHolder>(DiffCallback) {
     class BusStationViewHolder(private var binding: BusStationItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SimpleDateFormat")
-        fun bind(schedule: Schedule) {
+        fun bind(schedule: Schedule, dateFormatter: DateFormatter) {
             binding.stopNameTextView.text = schedule.stationName
-            binding.arrivalTimeTextView.text = SimpleDateFormat(
-                "h:mm a"
-            ).format(
-                Date(schedule.arrivalTime.toLong() * 1000)
-            )
+            binding.arrivalTimeTextView.text = dateFormatter.getFormat(schedule.arrivalTime)
         }
     }
 
@@ -47,7 +45,7 @@ class BusStationAdapter(private val onItemClicked: (Schedule) -> Unit) :
     }
 
     override fun onBindViewHolder(holder: BusStationViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), dateFormatter)
     }
 
     companion object {

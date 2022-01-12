@@ -20,34 +20,38 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.coroutineScope
-import androidx.recyclerview.widget.RecyclerView
-import com.example.busschedule.BusScheduleApplication
 import com.example.busschedule.BusStationAdapter
 import com.example.busschedule.databinding.StopScheduleFragmentBinding
+import com.example.busschedule.util.DateFormatter
 import com.example.busschedule.viewmodels.BusScheduleViewModel
-import com.example.busschedule.viewmodels.BusScheduleViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class StopScheduleFragment: Fragment() {
 
     companion object {
         var STOP_NAME = "stopName"
     }
 
+    private lateinit var dateFormatter : DateFormatter
+
     private var _binding: StopScheduleFragmentBinding? = null
 
     private val binding get() = _binding!!
 
-    private val viewModel : BusScheduleViewModel by activityViewModels {
-        BusScheduleViewModelFactory(
-            (activity?.application as BusScheduleApplication).database.scheduleDao()
-        )
-    }
+//    private val viewModel : BusScheduleViewModel by activityViewModels {
+//        BusScheduleViewModelFactory(
+//            (activity?.application as BusScheduleApplication).database.scheduleDao()
+//        )
+//    }
+//
+    private val viewModel by viewModels<BusScheduleViewModel>()
 
     private lateinit var stopName: String
 
@@ -71,17 +75,15 @@ class StopScheduleFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val busStationAdapter = BusStationAdapter {}
+        val busStationAdapter = BusStationAdapter ({}, dateFormatter)
 
         with(binding){
             recyclerView.adapter = busStationAdapter
         }
 
-        GlobalScope.launch(Dispatchers.IO) {
-            lifecycle.coroutineScope.launch {
-                viewModel.scheduleForStopName(stopName).collect {
-                    busStationAdapter.submitList(it)
-                }
+        lifecycle.coroutineScope.launch {
+            viewModel.scheduleForStopName(stopName).collect {
+                busStationAdapter.submitList(it)
             }
         }
     }

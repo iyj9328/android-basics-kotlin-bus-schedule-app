@@ -20,32 +20,29 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.coroutineScope
 import androidx.navigation.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.busschedule.BusScheduleApplication
 import com.example.busschedule.BusStationAdapter
 import com.example.busschedule.databinding.FullScheduleFragmentBinding
+import com.example.busschedule.util.DateFormatter
 import com.example.busschedule.viewmodels.BusScheduleViewModel
-import com.example.busschedule.viewmodels.BusScheduleViewModelFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class FullScheduleFragment: Fragment() {
+@AndroidEntryPoint
+class FullScheduleFragment : Fragment() {
 
     private var _binding: FullScheduleFragmentBinding? = null
 
     private val binding get() = _binding!!
 
-    private val viewModel: BusScheduleViewModel by activityViewModels {
-        BusScheduleViewModelFactory(
-            (activity?.application as BusScheduleApplication).database.scheduleDao()
-        )
-    }
+    @Inject
+    private lateinit var dateFormatter: DateFormatter
+
+    private val viewModel: BusScheduleViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,30 +51,27 @@ class FullScheduleFragment: Fragment() {
     ): View {
         _binding = FullScheduleFragmentBinding.inflate(inflater, container, false)
 
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val busStationAdapter = BusStationAdapter {
+        val busStationAdapter = BusStationAdapter({
             val action =
                 FullScheduleFragmentDirections.actionFullScheduleFragmentToStopScheduleFragment(
                     stopName = it.stationName
                 )
             requireView().findNavController().navigate(action)
-        }
+        }, dateFormatter)
 
-        with(binding){
+        with(binding) {
             recyclerView.adapter = busStationAdapter
         }
 
-        GlobalScope.launch(Dispatchers.IO) {
-            lifecycle.coroutineScope.launch{
-                viewModel.fullSchedule().collect {
-                    busStationAdapter.submitList(it)
-                }
+        lifecycle.coroutineScope.launch {
+            viewModel.fullSchedule().collect {
+                busStationAdapter.submitList(it)
             }
         }
     }
