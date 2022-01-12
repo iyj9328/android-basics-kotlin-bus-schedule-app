@@ -40,7 +40,7 @@ class FullScheduleFragment : Fragment() {
     private val binding get() = _binding!!
 
     @Inject
-    private lateinit var dateFormatter: DateFormatter
+    lateinit var dateFormatter: DateFormatter
 
     private val viewModel: BusScheduleViewModel by viewModels()
 

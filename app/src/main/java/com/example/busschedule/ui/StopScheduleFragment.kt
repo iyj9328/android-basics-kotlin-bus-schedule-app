@@ -31,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class StopScheduleFragment: Fragment() {
@@ -39,18 +40,13 @@ class StopScheduleFragment: Fragment() {
         var STOP_NAME = "stopName"
     }
 
-    private lateinit var dateFormatter : DateFormatter
+    @Inject
+    lateinit var dateFormatter: DateFormatter
 
     private var _binding: StopScheduleFragmentBinding? = null
 
     private val binding get() = _binding!!
 
-//    private val viewModel : BusScheduleViewModel by activityViewModels {
-//        BusScheduleViewModelFactory(
-//            (activity?.application as BusScheduleApplication).database.scheduleDao()
-//        )
-//    }
-//
     private val viewModel by viewModels<BusScheduleViewModel>()
 
     private lateinit var stopName: String
