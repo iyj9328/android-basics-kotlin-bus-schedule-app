@@ -15,9 +15,7 @@ import javax.inject.Singleton
 @Module
 object DatabaseModule {
     @Provides
-    fun provideScheduleDao(database: AppDatabase): ScheduleDao{
-        return database.scheduleDao()
-    }
+    fun provideScheduleDao(database: AppDatabase): ScheduleDao = database.scheduleDao()
 
     @Provides
     @Singleton
